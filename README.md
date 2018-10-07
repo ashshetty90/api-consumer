@@ -7,9 +7,9 @@ server certain computations/aggregations are performed. The result of these aggr
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 # Prerequisites
-Java 8
-Maven 3 
-Junit 4
+* Java 8
+* Maven 3 
+* Junit 4
 
 # Design and Assumption
 App class holds the entry point of application which takes input from the command line.
