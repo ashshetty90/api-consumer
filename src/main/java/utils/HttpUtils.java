@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 
 /**
- * @author shas7002
+ * @author ashish
  */
 /*
 * Utility class for all the Http requests and response*/

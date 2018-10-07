@@ -2,7 +2,7 @@ import core.GenerateUserData;
 import core.GenerateUserDataImpl;
 
 /**
- * @author shas7002
+ * @author ashish
  */
 public class App {
     /*

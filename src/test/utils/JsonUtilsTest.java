@@ -1,5 +1,6 @@
 package utils;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -10,7 +11,7 @@ import static org.junit.Assert.*;
 public class JsonUtilsTest {
     @Test
     public void readJson() throws Exception {
-        new JsonUtils().readJson("src/main/resources/transactions.json");
+        Assert.assertNotNull(new JsonUtils().readJson("src/main/resources/transactions.json"));
     }
 
 }

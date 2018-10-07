@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 
 /**
- * @author shas7002
+ * @author ashish
  */
 public class GenerateUserDataImplTest {
     @Test

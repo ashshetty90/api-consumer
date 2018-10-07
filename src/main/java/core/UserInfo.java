@@ -1,7 +1,7 @@
 package core;
 
 /**
- * @author shas7002
+ * @author ashish
  */
 /*
 * POJO class created as a bridge between the input/output JSON files
