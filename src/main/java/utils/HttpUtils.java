@@ -1,5 +1,6 @@
 package utils;
 
+import com.google.gson.Gson;
 import exception.HttpResponseException;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -10,6 +11,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author ashish
@@ -38,4 +40,17 @@ public class HttpUtils {
         LOGGER.info("User Data Fetched Successfully");
         return response;
     }
+
+    public static String prepareCityUrl(String cityIpWebAddr, String ip) {
+        return String.format(cityIpWebAddr,ip);
+    }
+
+    public static String prepareUserUrl(String userStatusWebAddr, Long uId, String created_at) {
+        return String.format(userStatusWebAddr, uId, created_at);
+    }
+
+    public Map<String,String > getResponseFromApi(Gson gson, HttpUtils httpUtils, String userStatusUrl) {
+        return gson.fromJson(httpUtils.getResponseFromApi(userStatusUrl), Map.class);
+    }
+
 }

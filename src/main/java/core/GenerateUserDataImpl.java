@@ -2,13 +2,11 @@ package core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import exception.HttpResponseException;
 import org.apache.log4j.Logger;
 import utils.JsonUtils;
 import utils.HttpUtils;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class GenerateUserDataImpl implements GenerateUserData {
     static final Logger LOGGER = Logger.getLogger(GenerateUserDataImpl.class);
+
     /*
     * fetchUserData method fetches user data
     * based on the inputs provided via command line
@@ -43,37 +42,52 @@ public class GenerateUserDataImpl implements GenerateUserData {
         * */
         Gson gson = new Gson();
         JsonUtils jsonUtils = new JsonUtils();
+
         List<UserInfo> userData = jsonUtils.readJson(inputFilePath);
-        List<UserInfo> enrichedUserData = new ArrayList<UserInfo>();
-        for (UserInfo data : userData) {
-            Long uId = data.getUser_id();
-            String created_at = data.getCreated_at();
-            String ip = data.getIp();
-            HttpUtils httpUtils = new HttpUtils();
-            LOGGER.info("Fetching user status for client id " + uId);
-            Map<String, String> cityJson = null;
-            try {
-                Map<String, String> userStatusJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(userStatusWebAddr, uId, created_at)), Map.class);
-                data.setStatus(userStatusJson.get("user_status"));
-                LOGGER.info("User status for client id " + uId + " fetched successfully");
-                LOGGER.info("Fetching country name for ip " + ip);
-                cityJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(cityIpWebAddr, ip)), Map.class);
-            } catch (JsonSyntaxException e) {
-                e.printStackTrace();
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-            LOGGER.info("Country name for ip " + ip + " fetched successfully");
-            data.setCountry(cityJson.get("city"));
-            enrichedUserData.add(data);
-        }
+
+        List<UserInfo> enrichedUserData = getEnrichedData(userStatusWebAddr, cityIpWebAddr, gson, userData);
+
         LOGGER.info("Writing enriched user data to output file location");
+
         jsonUtils.writeJsonResponse(enrichedUserData, outputFilePath);
+
         LOGGER.info("File writing completed successfully");
     }
 
-    public static void calculateAggregateCounts(String inputPath,String outPath) {
+    private List<UserInfo> getEnrichedData(String userStatusWebAddr, String cityIpWebAddr, Gson gson, List<UserInfo> userData) {
+        List<UserInfo> enrichedUserData = new ArrayList<UserInfo>();
+        for (UserInfo data : userData) {
+            HttpUtils httpUtils = new HttpUtils();
+            LOGGER.info("Fetching user status for client user id ");
+            Map<String, String> cityJson = new HashMap<String ,String>();
+
+            String userStatusUrl = HttpUtils.prepareUserUrl(userStatusWebAddr, data.getUser_id(), data.getCreated_at());
+            String cityUrl = HttpUtils.prepareCityUrl(cityIpWebAddr, data.getIp());
+
+            try {
+                Map<String, String> userStatusJson = httpUtils.getResponseFromApi(gson, httpUtils, userStatusUrl);
+                data.setStatus(userStatusJson.get("user_status"));
+
+                LOGGER.info("User status for client id fetched successfully");
+                LOGGER.info("Fetching country name for ip ");
+
+                cityJson = httpUtils.getResponseFromApi(gson, httpUtils, cityUrl);
+            } catch (JsonSyntaxException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            LOGGER.info("Country name for ip  fetched successfully");
+
+            data.setCountry(cityJson.get("city"));
+            enrichedUserData.add(data);
+        }
+        return enrichedUserData;
+    }
+
+
+    public static void calculateAggregateCounts(String inputPath, String outPath) {
         JsonUtils jsonUtils = new JsonUtils();
         List<UserInfo> userData = jsonUtils.readJson(inputPath);
         Map<String, Map<String, Double>> aggregateUserData = userData.stream().collect(
@@ -82,7 +96,7 @@ public class GenerateUserDataImpl implements GenerateUserData {
                                 UserInfo::getCountry, Collectors.summingDouble(
                                         UserInfo::getProduct_price))));
 
-       jsonUtils.writeJsonResponse(new Gson().toJson(aggregateUserData),outPath);
+        jsonUtils.writeJsonResponse(new Gson().toJson(aggregateUserData), outPath);
     }
 
 }
