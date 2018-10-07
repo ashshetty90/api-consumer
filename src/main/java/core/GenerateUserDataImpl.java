@@ -1,6 +1,8 @@
 package core;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import exception.HttpResponseException;
 import org.apache.log4j.Logger;
 import utils.JsonUtils;
 import utils.HttpUtils;
@@ -20,7 +22,6 @@ import java.util.stream.Collectors;
 
 public class GenerateUserDataImpl implements GenerateUserData {
     static final Logger LOGGER = Logger.getLogger(GenerateUserDataImpl.class);
-
     /*
     * fetchUserData method fetches user data
     * based on the inputs provided via command line
@@ -50,11 +51,19 @@ public class GenerateUserDataImpl implements GenerateUserData {
             String ip = data.getIp();
             HttpUtils httpUtils = new HttpUtils();
             LOGGER.info("Fetching user status for client id " + uId);
-            Map<String, String> userStatusJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(userStatusWebAddr, uId, created_at)), Map.class);
-            data.setStatus(userStatusJson.get("user_status"));
-            LOGGER.info("User status for client id " + uId + " fetched successfully");
-            LOGGER.info("Fetching country name for ip " + ip);
-            Map<String, String> cityJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(cityIpWebAddr, ip)), Map.class);
+            Map<String, String> cityJson = null;
+            try {
+                Map<String, String> userStatusJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(userStatusWebAddr, uId, created_at)), Map.class);
+                data.setStatus(userStatusJson.get("user_status"));
+                LOGGER.info("User status for client id " + uId + " fetched successfully");
+                LOGGER.info("Fetching country name for ip " + ip);
+                cityJson = gson.fromJson(httpUtils.getResponseFromApi(String.format(cityIpWebAddr, ip)), Map.class);
+            } catch (JsonSyntaxException e) {
+                e.printStackTrace();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             LOGGER.info("Country name for ip " + ip + " fetched successfully");
             data.setCountry(cityJson.get("city"));
             enrichedUserData.add(data);
